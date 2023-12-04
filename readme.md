@@ -42,19 +42,62 @@ For example in this board:
 
 So this says that the score isn't good at all. I think there's a nice way to set the parameters (1,2,8, the row weights) such that we get a nice definition of a drawn position (a static evaluation of 0), but I can't find one atm. Thankfully it doesn't actually matter that much. what matters more is whether a move increases or decreases this number, not what the number is specifically.
 
-Other interesting things to note about this system:
-1. that 4 in the top row is now priority, so even by moving left once, even though we don't remove anything, after the computer's best move (i.e the one that gives us the worst position), we still end up
+## Implications of this static eval system
+1. that 4 in the top row is now priority, so even by moving left once, even though we don't remove anything, after the computer's best move (i.e the one that gives us the worst position), we still end up able to go down next move and rid oursleves of the 4 at the top (and even though the 4 hasn't actually disappeared, it's now part of a nicer row)
 
 2. chains that lead to big numbers are nice (but that doesnt need to be explicitly defined because):
 	1. that leads to a big number in bottom row
 	2. that leads to not many anywhere else, which is what we want (downside is that super long chains would require a high depth for it to see the true advantage, but that can't be helped)
 so this helps maximise the static eval in **two** ways!
 
+3. Certain positions (for example a row with all the same number) would be static-evaluated to be bad, but after the opponent's best move, and our best move, it turns out to be good. This is why depth matters a **lot**.
+
+### One More Issue
+As I said earlier, it doesn't yet take into account corners. It _seeems_ easy enough. Just make a full weight paint:
+
+```python
+weights = [
+	[7.6], [7.8], [8.0], [8.0],
+	[1.4], [1.6], [1.8], [2.0],
+	[0.6], [0.8], [1.0], [1.4],
+]
+```
+
+But the issue is that if the biggest tile in the biggest row/column is not in a corner, then there's no clear way to define this.
+
+If I find a way to make this part work it'll be absolutely amazing, because then i can just do this:
+
+```python
+weights = [
+	[-7.6], [-7.8], [-8.0], [-8.0],
+	[-1.4], [-1.6], [-1.8], [-2.0],
+	[-1.0], [-0.8], [-0.4], [-0.2],
+	[+1.0], [+0.8], [+0.6], [+0.4]
+]
+```
+And then multiply each value in board with the corresponding weight and bam (could even find a linear algebraic way to speed all this up potentially).
+
+Also note I've created a sort of zig-zag now. The bottom row prefers to have the bottom left bigger, then the second (from the bottom) row prefers to have the right the biggest, then the next prefers the left, then finally the right. 
+
+So the best way to arrange 2,4,8,...,2048 according to this, is:
+
+```python
+board = [
+	[ ],    [ ],    [ ]    [ ],
+	[8],    [4],    [2],   [ ],
+	[16],   [32],   [64],  [128], 
+	[2048], [1024], [512], [256], 
+]
+```
+Which would be amazing! Only issue is that now it would think that a similar situation where the three rows are exactly even is also good, even though that would force an up. 
+
+SOO we can just add that in manually. 
+
+If we end up with 2 rows or 3 rows (but not 1 row) and nothing else, then that's very bad. decrease the score by 60% or something drastic like that. even though an issue like this can be solved by increasing the depth by one, this could end up as the end position of even a deep tree. interestingly we would probably only ever see this when the computer chooses to spawn in a way that traps us into that flat state. unfortunately our algorithm only works by assuming the computer will pick the worst state for us, so we can't do any sort of gambling with figuring out what risks are safe. maybe later, but that's a lot of probability theory that I am not getting into rn.
+
+**!!BTW IT IS IMPERATIVE THAT THE BOTTOM ROW IS NOT THE ONLY DIRECTION ALLOWED!!**
+because otherwise, if the computer gets into trouble and is forced to move up or something, it won't be able to switch and think on its feet. it'll be forced to try to go back to bottom left.
+
+
 So there we have it! My random swishy swashy idea actually has pretty good prospects.
-
-Another nice idea is that with alphabeta pruning ("there are lives on those branches ahhhh"), it's useful to find ways to order the moves in decreasing likelihood of being good (roughly). 
-
-_(That's just like how in chess you consider checks, captures, attacks before quiet moves, especially when you "smell" a tactic)_
-
-This means that even if there are concepts that don't have clear implications for static evaluation, those concepts **can** stil work towards making more prunes, so they'll increase efficiency.
 
