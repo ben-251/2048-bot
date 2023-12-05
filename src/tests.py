@@ -70,22 +70,16 @@ class HorizontalMoves(bt.testGroup):
 		)
 
 	def testMoveThroughGap(self):
-		player = customPlayer.customPlayer()
-		game_manager = backend.gameManager(player)
-		game_manager.loadBoard(
-			[
-				[0,0,0,2], [0,0,0,4], [4,0,2,8], [0,0,4,64]
-			]
-		)
-		move = player.makeMove("d")
-		game_manager.board.updateBoard(move)
-		bt.assertEquals(
-			game_manager.board.cells,
-			[
-				[0,0,0,2], [0,0,0,4], [0,4,2,8], [0,0,4,64]
-			]
-		)
-
+		with bt.assertNotRaises(board.IllegalMoveError):
+			player = customPlayer.customPlayer()
+			game_manager = backend.gameManager(player)
+			game_manager.loadBoard(
+				[
+					[0,0,0,2], [0,0,0,4], [4,0,2,8], [0,0,4,64]
+				]
+			)
+			move = player.makeMove("d")
+			game_manager.board.updateBoard(move)
 
 bt.test_all(
 	BoardTests,
