@@ -72,52 +72,52 @@ class Board():
 		self.spawnTile()
 
 	def slideTilesHorizontally(self,move):
-		'''
-		In each row
-		check if tile to see if it can go right 
-		if it can't anymore, then check the one to the left
-		once you've checked all 3, stop
-		'''
 		hasMoved = False
 		for row in self.cells:
 			direction = 1 if move == Move.RIGHT else -1
 			current_tile_position = 2 if direction == 1 else 1
 			while current_tile_position != -1 and current_tile_position != 4:
-				if not row[current_tile_position] == 0:
-					try:
-						row = self.slideSingleTile(row, current_tile_position, direction)
-						hasMoved = True
-					except NotMoved:
-						hasMoved = False
+				if row[current_tile_position] == 0:
+					current_tile_position -= direction
+					continue
+				try:
+					row = self.slideSingleTile(row, current_tile_position, direction)
+					hasMoved = True
+				except NotMoved:
+					hasMoved = False
 				current_tile_position -= direction
 		if not hasMoved:
 			raise IllegalMoveError("no tiles can move that way")
 
 	def slideSingleTile(self,row, current_tile_position,direction):
-		isWall = False
-		isBlocked = False
 		hasMoved = False
-		while not isWall and not isBlocked:
+		while True:
 			current_tile = row[current_tile_position]
 			if current_tile_position + direction == -1 or current_tile_position + direction == 4:
-				isWall = True
-				continue
+				break
 			next_tile = row[current_tile_position + direction]
 			if next_tile == 0:
-				buffer = row[current_tile_position]
-				row[current_tile_position] = row[current_tile_position + direction]
-				row[current_tile_position + direction] = buffer
+				self.swap(row, current_tile_position, direction)
 				hasMoved = True
 			elif next_tile == current_tile:
-				row[current_tile_position + direction] = 2*row[current_tile_position + direction]
-				row[current_tile_position] = 0
+				self.mergeTiles(row, current_tile_position, direction)
 				hasMoved = True
 			else:
-				isBlocked = True
+				break
 			current_tile_position += direction
+
 		if not hasMoved:
-			raise NotMoved()
+			raise NotMoved() #TODO: refactor out (side effect ish)
 		return row
+
+	def swap(self,row, starting_cell_position, direction):
+		buffer = row[starting_cell_position]
+		row[starting_cell_position] = row[starting_cell_position + direction]
+		row[starting_cell_position + direction] = buffer
+
+	def mergeTiles(self, row, current_tile_position, direction):
+		row[current_tile_position + direction] = 2*row[current_tile_position + direction]
+		row[current_tile_position] = 0
 
 	def slideTilesVertically(self, move):
 		...
