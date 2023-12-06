@@ -69,28 +69,28 @@ class Board():
 			self.slideTilesHorizontally(move)
 		else:
 			self.slideTilesVertically(move)
-		self.spawnTile()
 
 	def slideTilesHorizontally(self,move):
-		hasMoved = False
+		haveTilesMoved:List[bool] = []
 		for row in self.cells:
 			direction = 1 if move == Move.RIGHT else -1
 			current_tile_position = 2 if direction == 1 else 1
-			while current_tile_position != -1 and current_tile_position != 4:
+			while current_tile_position > -1 and current_tile_position < 4:
 				if row[current_tile_position] == 0:
 					current_tile_position -= direction
 					continue
 				try:
 					row = self.slideSingleTile(row, current_tile_position, direction)
-					hasMoved = True
+					haveTilesMoved.append(True)
 				except NotMoved:
-					hasMoved = False
+					haveTilesMoved.append(False)
 				current_tile_position -= direction
-		if not hasMoved:
+		if not any(haveTilesMoved):
 			raise IllegalMoveError("no tiles can move that way")
 
-	def slideSingleTile(self,row, current_tile_position,direction):
+	def slideSingleTile(self, row, current_tile_position, direction):
 		hasMoved = False
+		hasMerged = False
 		while True:
 			current_tile = row[current_tile_position]
 			if current_tile_position + direction == -1 or current_tile_position + direction == 4:
@@ -101,12 +101,13 @@ class Board():
 				hasMoved = True
 			elif next_tile == current_tile:
 				self.mergeTiles(row, current_tile_position, direction)
-				hasMoved = True
+				hasMerged = True
+				break
 			else:
 				break
 			current_tile_position += direction
 
-		if not hasMoved:
+		if not hasMoved and not hasMerged:
 			raise NotMoved() #TODO: refactor out (side effect ish)
 		return row
 

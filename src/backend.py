@@ -22,6 +22,8 @@ class gameManager():
 		move = self.player.makeMove()
 		try:
 			self.board.updateBoard(move)
+			self.board.spawnTile()
+
 		except IllegalMoveError as e:
 			print(e)
 			self.Move()
