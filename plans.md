@@ -101,3 +101,7 @@ because otherwise, if the computer gets into trouble and is forced to move up or
 
 So there we have it! My random swishy swashy idea actually has pretty good prospects.
 
+
+
+# BTW
+***please don't say "ghost" player and stuff, say things like "simulated" to better reflect the idea of creating a fake version of something***

@@ -1,4 +1,6 @@
 import random
+
+from bentests import colorama
 from utils import GameState, Move
 from typing import List, Optional
 
@@ -80,7 +82,7 @@ class Board():
 					current_tile_position -= direction
 					continue
 				try:
-					row = self.slideSingleTile(row, current_tile_position, direction)
+					row = self.slideSingleTileHorizontally(row, current_tile_position, direction)
 					haveTilesMoved.append(True)
 				except NotMoved:
 					haveTilesMoved.append(False)
@@ -88,7 +90,7 @@ class Board():
 		if not any(haveTilesMoved):
 			raise IllegalMoveError("no tiles can move that way")
 
-	def slideSingleTile(self, row, current_tile_position, direction):
+	def slideSingleTileHorizontally(self, row, current_tile_position, direction):
 		hasMoved = False
 		hasMerged = False
 		while True:
@@ -97,10 +99,10 @@ class Board():
 				break
 			next_tile = row[current_tile_position + direction]
 			if next_tile == 0:
-				self.swap(row, current_tile_position, direction)
+				self.swapHorizontally(row, current_tile_position, direction)
 				hasMoved = True
 			elif next_tile == current_tile:
-				self.mergeTiles(row, current_tile_position, direction)
+				self.mergeTilesHorizontally(row, current_tile_position, direction)
 				hasMerged = True
 				break
 			else:
@@ -111,15 +113,65 @@ class Board():
 			raise NotMoved() #TODO: refactor out (side effect ish)
 		return row
 
-	def swap(self,row, starting_cell_position, direction):
-		buffer = row[starting_cell_position]
-		row[starting_cell_position] = row[starting_cell_position + direction]
-		row[starting_cell_position + direction] = buffer
-
-	def mergeTiles(self, row, current_tile_position, direction):
-		row[current_tile_position + direction] = 2*row[current_tile_position + direction]
-		row[current_tile_position] = 0
-
 	def slideTilesVertically(self, move):
-		...
+		haveTilesMoved:List[bool] = []
+
+		for column_index in range(4):
+			column_values = [row[column_index] for row in self.cells]
+			for row_index, cell_value in enumerate(column_values):
+				direction = 1 if move == Move.RIGHT else -1
+				current_tile_position = 2 if direction == 1 else 1
+				while current_tile_position > -1 and current_tile_position < 4:
+					if cell_value == 0:
+						current_tile_position -= direction
+						continue
+					try:
+						self.slideSingleTileVertically(row_index, column_index, direction)
+						haveTilesMoved.append(True)
+					except NotMoved:
+						haveTilesMoved.append(False)
+					current_tile_position -= direction
+		if not any(haveTilesMoved):
+			raise IllegalMoveError("no tiles can move that way")
+
 			
+	def slideSingleTileVertically(self, column: int, current_row: int, direction: int):
+		hasMoved = False
+		hasMerged = False
+		while True:
+			current_tile = self.cells[current_row][column]
+			if current_row + direction == -1 or current_row + direction == 4:
+				break
+			next_tile = self.cells[current_row][column]
+			if next_tile == 0:
+				self.swapVertically(current_row, column, direction)
+				hasMoved = True
+			elif next_tile == current_tile:
+				self.mergeTilesVertically(current_row, column, direction)
+				hasMerged = True
+				break
+			else:
+				break
+			current_row += direction
+
+		if not hasMoved and not hasMerged:
+			raise NotMoved() #TODO: refactor out (side effect ish)
+		return 
+
+	def swapHorizontally(self,row, column, direction):
+		buffer = row[column]
+		row[column] = row[column + direction]
+		row[column + direction] = buffer
+	
+	def swapVertically(self, row, column, direction):
+		buffer = self.cells[row][column]
+		self.cells[row][column] = self.cells[row][column+direction]
+		self.cells[row][column + direction] = buffer
+
+	def mergeTilesHorizontally(self, row, column, direction):
+		row[column + direction] = 2*row[column + direction]
+		row[column] = 0
+
+	def mergeTilesVertically(self, row: int, column: int, direction):
+		self.cells[row][column + direction] = 2*self.cells[row][column + direction]
+		self.cells[row][column] = 0
