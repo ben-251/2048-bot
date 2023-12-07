@@ -115,22 +115,19 @@ class Board():
 
 	def slideTilesVertically(self, move):
 		haveTilesMoved:List[bool] = []
-
-		for column_index in range(4):
-			column_values = [row[column_index] for row in self.cells]
-			for row_index, cell_value in enumerate(column_values):
-				direction = 1 if move == Move.RIGHT else -1
-				current_tile_position = 2 if direction == 1 else 1
-				while current_tile_position > -1 and current_tile_position < 4:
-					if cell_value == 0:
-						current_tile_position -= direction
-						continue
-					try:
-						self.slideSingleTileVertically(row_index, column_index, direction)
-						haveTilesMoved.append(True)
-					except NotMoved:
-						haveTilesMoved.append(False)
+		for row_index in range(4):
+			direction = 1 if move == Move.DOWN else -1
+			current_tile_position = 2 if direction == 1 else 1
+			while current_tile_position > -1 and current_tile_position < 4:
+				if self.cells[current_tile_position][row_index] == 0:
 					current_tile_position -= direction
+					continue
+				try:
+					self.slideSingleTileVertically(row_index, current_tile_position, direction)
+					haveTilesMoved.append(True)
+				except NotMoved:
+					haveTilesMoved.append(False)
+				current_tile_position -= direction
 		if not any(haveTilesMoved):
 			raise IllegalMoveError("no tiles can move that way")
 
@@ -142,7 +139,7 @@ class Board():
 			current_tile = self.cells[current_row][column]
 			if current_row + direction == -1 or current_row + direction == 4:
 				break
-			next_tile = self.cells[current_row][column]
+			next_tile = self.cells[current_row+direction][column]
 			if next_tile == 0:
 				self.swapVertically(current_row, column, direction)
 				hasMoved = True
@@ -165,13 +162,17 @@ class Board():
 	
 	def swapVertically(self, row, column, direction):
 		buffer = self.cells[row][column]
-		self.cells[row][column] = self.cells[row][column+direction]
-		self.cells[row][column + direction] = buffer
+		self.cells[row][column] = self.cells[row+direction][column]
+		self.cells[row+direction][column] = buffer
 
 	def mergeTilesHorizontally(self, row, column, direction):
 		row[column + direction] = 2*row[column + direction]
 		row[column] = 0
 
 	def mergeTilesVertically(self, row: int, column: int, direction):
-		self.cells[row][column + direction] = 2*self.cells[row][column + direction]
+		'''
+		If moving up, moves the bottom one into the top. 
+		If moving down, moves the top one into the bottom.
+		'''
+		self.cells[row+direction][column] = 2*self.cells[row][column] 
 		self.cells[row][column] = 0

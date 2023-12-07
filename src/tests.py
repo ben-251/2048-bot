@@ -25,7 +25,7 @@ class HorizontalMoves(bt.testGroup):
 				[0,0,2,2],[0,0,0,0],[0,0,0,0], [0,0,0,0]
 			]
 		)
-		game_manager.board.mergeTilesHorizontally(game_manager.board.cells[2],0,1)
+		game_manager.board.mergeTilesHorizontally(game_manager.board.cells[0],2,1)
 		bt.assertEquals(
 			game_manager.board.cells,
 			[
@@ -103,6 +103,22 @@ class HorizontalMoves(bt.testGroup):
 class VerticalMoves(bt.testGroup):
 	def __init__(self):
 		super().__init__()
+
+	def testMerge(self):
+		player = customPlayer.customPlayer()
+		game_manager = backend.gameManager(player)
+		game_manager.loadBoard(
+			[
+				[0,0,2,0],[0,0,2,0],[0,0,0,0], [0,0,0,0]
+			]
+		)
+		game_manager.board.mergeTilesVertically(1,2,-1)
+		bt.assertEquals(
+			game_manager.board.cells,
+			[
+				[0,0,4,0],[0,0,0,0],[0,0,0,0], [0,0,0,0]
+			]			
+		)
 	
 	def testInvalidUp(self):
 		with bt.assertRaises(board.IllegalMoveError):
@@ -146,13 +162,19 @@ class VerticalMoves(bt.testGroup):
 		player = customPlayer.customPlayer()
 		game_manager = backend.gameManager(player)
 		game_manager.loadBoard(
-			[[16,0,0,0],[16,0,0,0],[16,0,0,0], [16,0,0,0]]
+			[[16,0,0,0],
+			[16,0,0,0],
+			[16,0,0,0],
+			[16,0,0,0]]
 		)
 		move = player.makeMove("s")
 		game_manager.board.updateBoard(move)
 		bt.assertEquals(
 			game_manager.board.cells,
-			[[0,0,0,0], [0,0,8,8], [32,0,0,0], [32,0,0,0]]
+			[[0,0,0,0],
+			 [0,0,0,0],
+			 [32,0,0,0],
+			 [32,0,0,0]]
 		)
 
 	def test_two_pairs(self):
