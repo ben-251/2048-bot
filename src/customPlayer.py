@@ -6,5 +6,5 @@ class customPlayer(Player):
 		super().__init__()
 	
 	def makeMove(self, move):
-		converted_move = Move(move)
+		converted_move = self.convertToMove(move)
 		return converted_move

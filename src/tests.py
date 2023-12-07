@@ -7,11 +7,28 @@ class BoardTests(bt.testGroup):
 	def __init__(self):
 		super().__init__()
 
-	# no way to directly test a random board
 	def testBoardDimensions(self):
 		new_board = board.Board()
 		new_board_dimensions = [len(new_board.cells), len(new_board.cells[0])]
 		bt.assertEquals(new_board_dimensions, [4,4])
+
+	def testLoadCustomBoard(self):
+		new_board = board.Board()
+		new_board.loadCustomBoard(
+			[[0,0,0,0],
+			[2,4,8,16],
+			[16,32,128,4],
+			[2,0,0,4]
+			]
+		)
+		bt.assertEquals(
+			new_board.cells,
+			[[0,0,0,0],
+			[2,4,8,16],
+			[16,32,128,4],
+			[2,0,0,4]
+			]
+		)
 
 class HorizontalMoves(bt.testGroup):
 	def __init__(self):
@@ -34,30 +51,42 @@ class HorizontalMoves(bt.testGroup):
 		)
 	
 	def testSwap(self):
-		...
+		new_board = board.Board()
+		new_board.loadCustomBoard(
+			[
+				[0,0,2,2],[0,0,0,0],[0,0,0,0], [0,0,0,0]
+			]
+		)
+		new_board.mergeTilesHorizontally(new_board.cells[0],2,1)
+		bt.assertEquals(
+			new_board.cells,
+			[
+				[0,0,0,4],[0,0,0,0],[0,0,0,0], [0,0,0,0]
+			]			
+		)
 	
 	def testInvalidRight(self):
 		with bt.assertRaises(board.IllegalMoveError):
 			player = customPlayer.customPlayer()
-			game_manager = backend.gameManager(player)
-			game_manager.loadBoard(
+			new_board =  board.Board()
+			new_board.loadCustomBoard(
 				[
 					[0,0,0,0],[0,0,0,2],[0,0,0,0],[4,2,4,2]
 				]
 			)
 			move = player.makeMove("d")
-			game_manager.board.updateBoard(move)
+			new_board.updateBoard(move)
 
 	def test3_Consecutive(self):
 		player = customPlayer.customPlayer()
-		game_manager = backend.gameManager(player)
-		game_manager.loadBoard(
+		new_board = board.Board()
+		new_board.loadCustomBoard(
 			[[0,0,0,0],[0,4,4,4],[0,0,0,0], [0,0,0,0]]
 		)
 		move = player.makeMove("d")
-		game_manager.board.updateBoard(move)
+		new_board.updateBoard(move)
 		bt.assertEquals(
-			game_manager.board.cells,
+			new_board.cells,
 			[[0,0,0,0], [0,0,4,8], [0,0,0,0], [0,0,0,0]]
 		)
 
@@ -213,8 +242,26 @@ class VerticalMoves(bt.testGroup):
 			]			
 		)
 
+class GamePlay(bt.testGroup):
+	def __init__(self):
+		super().__init__()
+	
+	def testGameOver(self):
+		player = customPlayer.customPlayer()
+		game_manager = backend.gameManager(player)
+		game_manager.loadBoard([
+			[2,4,8,16],
+			[4,8,16,2],
+			[8,16,2,4],
+			[16,2,4,8]
+		])
+		validMoves = game_manager.getValidMoves()
+		bt.assertEquals(validMoves,[])
+
+
 bt.test_all(
 	BoardTests,
 	HorizontalMoves,
-	VerticalMoves
+	VerticalMoves,
+	GamePlay
 )

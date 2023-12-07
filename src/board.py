@@ -1,5 +1,4 @@
 import random
-
 from bentests import colorama
 from utils import GameState, Move
 from typing import List, Optional
@@ -65,17 +64,17 @@ class Board():
 			print("")
 	
 	def updateBoard(self,move):
-		# will probably need to implement the up downs seperate from left rights.
-		isHorizontal = move == Move.LEFT or move == Move.RIGHT
-		if isHorizontal:
+		if move in move.HORIZONTAL:
 			self.slideTilesHorizontally(move)
-		else:
+		elif move in move.VERTICAL:
 			self.slideTilesVertically(move)
+		else:
+			raise ValueError("invalid move type")
 
 	def slideTilesHorizontally(self,move):
 		haveTilesMoved:List[bool] = []
 		for row in self.cells:
-			direction = 1 if move == Move.RIGHT else -1
+			direction = 1 if move is Move.RIGHT else -1
 			current_tile_position = 2 if direction == 1 else 1
 			while current_tile_position > -1 and current_tile_position < 4:
 				if row[current_tile_position] == 0:
@@ -116,7 +115,7 @@ class Board():
 	def slideTilesVertically(self, move):
 		haveTilesMoved:List[bool] = []
 		for row_index in range(4):
-			direction = 1 if move == Move.DOWN else -1
+			direction = 1 if move is Move.DOWN else -1
 			current_tile_position = 2 if direction == 1 else 1
 			while current_tile_position > -1 and current_tile_position < 4:
 				if self.cells[current_tile_position][row_index] == 0:
