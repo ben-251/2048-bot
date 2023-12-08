@@ -6,7 +6,7 @@ class Player:
 	def __init__(self):
 		self.score = 0
 	
-	def makeMove(self):
+	def makeMove(self,board):
 		return ""
 	
 	def convertToMove(self, move):
@@ -21,3 +21,15 @@ class Player:
 				return Move.RIGHT
 			case _:
 				raise InvalidLetterError
+
+	def convertToLetter(self, move):
+		match move:
+			case Move.UP:
+				return "w"
+			case Move.LEFT:
+				return "a"
+			case Move.DOWN:
+				return "s"
+			case Move.RIGHT:
+				return "d"
+		return move

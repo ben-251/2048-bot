@@ -6,13 +6,13 @@ class Human(Player):
 	def __init__(self):
 		super().__init__()
 
-	def makeMove(self):
+	def makeMove(self,board):
 		move = input("Enter move: ").lower()
 		try:
 			converted_move = self.convertToMove(move)
 		except InvalidLetterError:
 			print("Enter w, a, s, or d.")
-			return self.makeMove()
+			return self.makeMove(board)
 		return converted_move
 	
 

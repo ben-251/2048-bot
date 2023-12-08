@@ -36,10 +36,16 @@ class Board():
 		for _ in range(tileCount):
 			self.spawnTile()
 
-	def spawnTile(self):
+	def spawnTile(self, position: Optional[List[int]]=None, value: Optional[int]=None):
 		'''
 		Adds a new random tile (2 or 4) to an empty space on the board. 
 		'''
+		if not position is None and not value is None:
+			row_num = position[0]
+			col_num = position[1]
+			self.cells[row_num][col_num] = value
+			return
+
 		random_row_num = random.randint(0,3)
 		random_col_num = random.randint(0,3)
 		if not any([cell != 0 for cell in [row for row in self.cells]]):
@@ -63,7 +69,10 @@ class Board():
 				print(f" {symbol} ",end = "")
 			print("")
 	
-	def updateBoard(self,move):
+	def updateBoard(self,move:Move):
+		if move is move.HORIZONTAL or move is move.VERTICAL:
+			raise ValueError
+
 		if move in move.HORIZONTAL:
 			self.slideTilesHorizontally(move)
 		elif move in move.VERTICAL:

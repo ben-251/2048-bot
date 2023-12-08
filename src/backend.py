@@ -1,6 +1,8 @@
 from board import Board, BoardFullError, IllegalMoveError
 from utils import GameState, Move
 from customPlayer import customPlayer
+from typing import List
+import time
 
 class gameManager():
 	def __init__(self,player):
@@ -13,23 +15,35 @@ class gameManager():
 		print("Use WASD to move")
 		self.board.display()
 		while self._status == GameState.IN_PLAY:
-			validMoves = self.getValidMoves()
-			if not validMoves:
+			if self.isLost():
 				self._status = GameState.LOST
 				continue
-			self.Move()
+			if self.hasWon():
+				self._status = GameState.WON
+				continue
+			self.move()
 			self.board.display()
-	
-	def Move(self):
-		move = self.player.makeMove()
+			time.sleep(2)
+		self.display_results()
+
+	def display_results(self):
+		match self._status:
+			case GameState.WON:
+				print("YOU WON!")
+			case GameState.LOST:
+				print("Game over.")
+			case _:
+				raise RuntimeError(f"Unexpected Gamestate: {self._status}")
+	def move(self):
+		move = self.player.makeMove(self.board)
 		try:
 			self.board.updateBoard(move)
 			self.board.spawnTile()
 		except IllegalMoveError as e:
 			print(e)
-			self.Move()
+			self.move()
 
-	def getValidMoves(self):
+	def getValidMoves(self) -> List[Move]:
 		simulation_board = Board()
 		simulation_board.loadCustomBoard(self.board.cells)
 		validMoves = []
@@ -39,10 +53,24 @@ class gameManager():
 				validMoves.append(move)
 			except IllegalMoveError:
 				pass
+			except ValueError:
+				pass
 		return validMoves
-		
+
 	def loadBoard(self, gameState):
 		self.board.loadCustomBoard(gameState)
 			
 
+	def isLost(self):
+		validMoves = self.getValidMoves()
+		if not validMoves:
+			return True
 
+	def hasWon(self, targetNumber = None):
+		if targetNumber is None:
+			targetNumber = 2048
+		for row in self.board.cells:
+			for cell in row:
+				if cell == targetNumber:
+					return True
+		return False

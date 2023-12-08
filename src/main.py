@@ -1,8 +1,9 @@
 import backend
 from human import Human
+from bot import Bot
 
 def main():
-	player = Human()
+	player = Bot()
 	game_manager = backend.gameManager(player)
 	game_manager.loadBoard(
 		[

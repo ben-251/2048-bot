@@ -8,3 +8,4 @@ class customPlayer(Player):
 	def makeMove(self, move):
 		converted_move = self.convertToMove(move)
 		return converted_move
+	

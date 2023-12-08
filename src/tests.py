@@ -1,6 +1,7 @@
 import bentests as bt
 import board
 import customPlayer
+from bot import Bot
 import backend
 
 class BoardTests(bt.testGroup):
@@ -258,10 +259,36 @@ class GamePlay(bt.testGroup):
 		validMoves = game_manager.getValidMoves()
 		bt.assertEquals(validMoves,[])
 
+class StaticEval(bt.testGroup):
+	def __init__(self):
+		super().__init__()
+	
+	def testBottomRowOnly(self):
+		bot = Bot()
+		new_board = board.Board()
+		new_board.loadCustomBoard(
+			[
+				[0,0,0,0], [0,0,0,0], [0,0,0,0], [128, 64, 4, 2]
+			]
+		)
+		evaluation = bot.computeStaticEval(new_board)
+		bt.assertEquals(evaluation,182.4)
+
+	def testBadRowsOnly(self):
+		bot = Bot()
+		new_board = board.Board()
+		new_board.loadCustomBoard(
+			[
+				[2,8,2,4], [2,8,2,4], [2,8,2,4], [0, 0, 0, 0]
+			]
+		)
+		evaluation = bot.computeStaticEval(new_board)
+		bt.assertAlmostEquals(evaluation,-162.8)
 
 bt.test_all(
 	BoardTests,
 	HorizontalMoves,
 	VerticalMoves,
-	GamePlay
+	GamePlay,
+	StaticEval
 )
