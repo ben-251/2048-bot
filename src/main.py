@@ -7,7 +7,7 @@ def main():
 	game_manager = backend.gameManager(player)
 	game_manager.loadBoard(
 		[
-			[0,0,0,0],[2,0,0,2],[0,4,4,0],[16,16,16,16]
+			[0,0,0,0],[4,2,4,4],[2,8,2,8],[32,32,4,2]
 		]
 	)
 	game_manager.play()

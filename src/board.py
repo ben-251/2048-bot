@@ -1,3 +1,4 @@
+import copy
 import random
 from bentests import colorama
 from utils import GameState, Move
@@ -57,9 +58,10 @@ class Board():
 		self.cells[random_row_num][random_col_num] = random_cell_value
 
 	def loadCustomBoard(self, gameState:List[List[int]]):
-		self.cells = gameState
+		self.cells = copy.deepcopy(gameState)
 
 	def display(self):
+		print("\n")
 		for row in self.cells:
 			for cell in row:
 				if cell == 0:

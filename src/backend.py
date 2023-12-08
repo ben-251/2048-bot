@@ -23,7 +23,6 @@ class gameManager():
 				continue
 			self.move()
 			self.board.display()
-			time.sleep(2)
 		self.display_results()
 
 	def display_results(self):
@@ -45,9 +44,9 @@ class gameManager():
 
 	def getValidMoves(self) -> List[Move]:
 		simulation_board = Board()
-		simulation_board.loadCustomBoard(self.board.cells)
 		validMoves = []
 		for move in Move:
+			simulation_board.loadCustomBoard(self.board.cells)
 			try:
 				simulation_board.updateBoard(move)
 				validMoves.append(move)
@@ -65,6 +64,7 @@ class gameManager():
 		validMoves = self.getValidMoves()
 		if not validMoves:
 			return True
+		return False
 
 	def hasWon(self, targetNumber = None):
 		if targetNumber is None:

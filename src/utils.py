@@ -12,3 +12,4 @@ class Move(Flag):
 	RIGHT = auto()
 	HORIZONTAL = LEFT | RIGHT
 	VERTICAL = UP | DOWN
+	NONE = auto()

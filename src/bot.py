@@ -16,13 +16,13 @@ class Bot(Player):
 
 	def __init__(self):
 		super().__init__()
+		self.bestMove = Move.NONE #TODO: remove this montrosity
 	
 	def computeStaticEval(self, game_state: Board) -> float:
 		current_eval = 0
 		for weight_row, board_row in zip(self.WEIGHT_MAP, game_state.cells):
 			for weight, cell in zip(weight_row, board_row):
 				current_eval += weight * cell
-		#TODO: return -inf if lost and +inf if won.
 		return current_eval
 
 	def minimax(self, board: Board, depth: int, alpha: Optional[float]=None, beta: Optional[float] = None, isBotTurn: Optional[float]=None) -> float:
@@ -46,11 +46,13 @@ class Bot(Player):
 		if isBotTurn:
 			best = -math.inf
 			legalMoves = simulated_game_manager.getValidMoves()
-			legalMoves
-			for move in legalMoves:
+			for move in legalMoves:		
+				simulated_player = customPlayer()
 				letter_for_move = simulated_player.convertToLetter(move)
-				simulated_game_manager.loadBoard(board.cells) # or maybe redefine simulated manager and player just to be sure there are no side effects
-				simulated_player.makeMove(letter_for_move)
+				simulated_game_manager = gameManager(simulated_player)
+				simulated_game_manager.loadBoard(board.cells)
+				simulated_move = simulated_player.makeMove(letter_for_move)
+				simulated_game_manager.board.updateBoard(simulated_move)
 				evaluation = self.minimax(simulated_game_manager.board, depth-1, alpha, beta, isBotTurn=False)
 				if evaluation > best:
 					self.bestMove =  move # i know its disgusting i cant think of any oother wayy
@@ -63,6 +65,9 @@ class Bot(Player):
 			legalSpawnPositions = self.getLegalSpawnPositions(board)
 			possibleSpawns = self.getLegalSpawns(legalSpawnPositions)
 			for spawn_position in possibleSpawns:
+				simulated_player = customPlayer()
+				simulated_game_manager = gameManager(simulated_player)
+				simulated_game_manager.loadBoard(board.cells)
 				simulated_game_manager.board.spawnTile(position=spawn_position[0],value=spawn_position[1]) # or maybe redefine simulated manager and player just to be sure there are no side effects
 				evaluation = self.minimax(simulated_game_manager.board, depth-1, alpha, beta, isBotTurn=True)
 				best = min(evaluation, best)
@@ -87,5 +92,5 @@ class Bot(Player):
 		return spawns
 
 	def makeMove(self, board):
-		self.minimax(board, 2)
+		self.minimax(board, 4)
 		return self.bestMove

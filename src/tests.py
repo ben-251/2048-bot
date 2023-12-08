@@ -1,8 +1,9 @@
 import bentests as bt
 import board
 import customPlayer
-from bot import Bot
+import bot
 import backend
+from utils import *
 
 class BoardTests(bt.testGroup):
 	def __init__(self):
@@ -264,31 +265,96 @@ class StaticEval(bt.testGroup):
 		super().__init__()
 	
 	def testBottomRowOnly(self):
-		bot = Bot()
+		simulated_bot = bot.Bot()
 		new_board = board.Board()
 		new_board.loadCustomBoard(
 			[
 				[0,0,0,0], [0,0,0,0], [0,0,0,0], [128, 64, 4, 2]
 			]
 		)
-		evaluation = bot.computeStaticEval(new_board)
+		evaluation = simulated_bot.computeStaticEval(new_board)
 		bt.assertEquals(evaluation,182.4)
 
 	def testBadRowsOnly(self):
-		bot = Bot()
+		simulated_bot = bot.Bot()
 		new_board = board.Board()
 		new_board.loadCustomBoard(
 			[
 				[2,8,2,4], [2,8,2,4], [2,8,2,4], [0, 0, 0, 0]
 			]
 		)
-		evaluation = bot.computeStaticEval(new_board)
+		evaluation = simulated_bot.computeStaticEval(new_board)
 		bt.assertAlmostEquals(evaluation,-162.8)
 
+class Bot(bt.testGroup):
+	def __init__(self):
+		super().__init__()
+	
+	def testWinningVerticalMove(self):
+		simulated_bot = bot.Bot()
+		simulated_board = board.Board()
+
+		simulated_board.loadCustomBoard(
+			[[0,0,0,0],
+			[0,0,0,0],
+			[1024,0,0,0],
+			[1024, 0,0,0]
+			]
+		)
+		best_move = simulated_bot.makeMove(simulated_board)
+		
+		bt.assertEquals(
+			best_move, Move.UP # cuz it checks moves in w, a, s, d order
+		)
+
+	def testWinningHorizontalMove(self):
+		simulated_bot = bot.Bot()
+		simulated_board = board.Board()
+
+		simulated_board.loadCustomBoard(
+			[[0,0,0,0],[0,0,0,0],[1024,1024,0,0],[0, 0,0,0]])
+		best_move = simulated_bot.makeMove(simulated_board)
+		bt.assertEquals(best_move, Move.LEFT) # cuz it checks moves in w, a, s, d order
+
+	def testWinInTwo(self):
+		simulated_bot = bot.Bot()
+		simulated_board = board.Board()
+
+		simulated_board.loadCustomBoard(
+			[[0,0,0,0],
+			[0,0,0,0],
+			[512,0,0,0],
+			[512, 1024,0,0]
+			]
+		)
+		best_move = simulated_bot.makeMove(simulated_board)
+		
+		bt.assertEquals(
+			best_move, Move.DOWN # cuz it checks moves in w, a, s, d order
+		)
+	def testObviousBestMove(self):
+		simulated_bot = bot.Bot()
+		simulated_board = board.Board()
+
+		simulated_board.loadCustomBoard(
+			[[0,0,0,0],
+			[0,0,0,0],
+			[8,0,0,0],
+			[8, 16,0,0]
+			]
+		)
+		best_move = simulated_bot.makeMove(simulated_board)
+		
+		bt.assertEquals(
+			best_move, Move.DOWN # cuz it checks moves in w, a, s, d order
+		)
+	
 bt.test_all(
 	BoardTests,
+	Bot,
 	HorizontalMoves,
 	VerticalMoves,
 	GamePlay,
-	StaticEval
+	StaticEval,
+	stats_amount="low"
 )
