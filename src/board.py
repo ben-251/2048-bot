@@ -186,3 +186,32 @@ class Board():
 		'''
 		self.cells[row+direction][column] = 2*self.cells[row][column] 
 		self.cells[row][column] = 0
+
+	def isLost(self):
+		validMoves = self.getValidMoves()
+		if not validMoves:
+			return True
+		return False
+
+	def hasWon(self, targetNumber = None):
+		if targetNumber is None:
+			targetNumber = 2048
+		for row in self.cells:
+			for cell in row:
+				if cell == targetNumber:
+					return True
+		return False
+
+	def getValidMoves(self) -> List[Move]:
+		simulation_board = Board()
+		validMoves = []
+		for move in Move:
+			simulation_board.loadCustomBoard(self.cells)
+			try:
+				simulation_board.updateBoard(move)
+				validMoves.append(move)
+			except IllegalMoveError:
+				pass
+			except ValueError:
+				pass
+		return validMoves

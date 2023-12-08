@@ -8,10 +8,10 @@ from utils import Move
 
 class Bot(Player):
 	WEIGHT_MAP = [
-		[-7.6, -7.8, -8.0, -8.0], #-125.6
-		[-1.4, -1.6, -1.8, -2.0], # -27.2
-		[-1.0, -0.8, -0.4, -0.2], # -10
-		[+1.0, +0.8, +0.6, +0.4]
+		[-16.0, -16.8, -16.0, -16.0],
+		[-5.4, -5.6, -5.8, -6.0], 
+		[+1.0, +1.0, +2.0, +3.0], 
+		[+30.0, +7.0, +6.0, +5.0]
 	]
 
 	def __init__(self):
@@ -25,56 +25,62 @@ class Bot(Player):
 				current_eval += weight * cell
 		return current_eval
 
-	def minimax(self, board: Board, depth: int, alpha: Optional[float]=None, beta: Optional[float] = None, isBotTurn: Optional[float]=None) -> float:
-		simulated_player = customPlayer()
-		simulated_game_manager = gameManager(simulated_player)
-		simulated_game_manager.loadBoard(board.cells)
+	def minimax(self, board: Board, maxDepth: int, current_depth: Optional[int]=None, alpha: Optional[float]=None, beta: Optional[float] = None, isBotTurn: Optional[float]=None) -> float:
+		simulated_board = Board()
+		simulated_board.loadCustomBoard(board.cells)
 		if alpha is None:
 			alpha = -math.inf
 		if beta is None:
 			beta = math.inf
 		if isBotTurn is None:
-			isBotTurn = True	
-		if depth == 0:
-			return self.computeStaticEval(simulated_game_manager.board)
-		if simulated_game_manager.isLost():
-			return -math.inf
-		elif simulated_game_manager.hasWon():
-			return math.inf
+			isBotTurn = True
+		if current_depth is None:
+			current_depth = maxDepth
 
+		if current_depth == 0:
+			return self.computeStaticEval(simulated_board)
+		if simulated_board.isLost():
+			return -math.inf
+		elif simulated_board.hasWon():
+			return math.inf
 
 		if isBotTurn:
 			best = -math.inf
-			legalMoves = simulated_game_manager.getValidMoves()
+			legalMoves = simulated_board.getValidMoves()
 			for move in legalMoves:		
 				simulated_player = customPlayer()
 				letter_for_move = simulated_player.convertToLetter(move)
-				simulated_game_manager = gameManager(simulated_player)
-				simulated_game_manager.loadBoard(board.cells)
+				simulated_board = Board()
+				simulated_board.loadCustomBoard(board.cells)
 				simulated_move = simulated_player.makeMove(letter_for_move)
-				simulated_game_manager.board.updateBoard(simulated_move)
-				evaluation = self.minimax(simulated_game_manager.board, depth-1, alpha, beta, isBotTurn=False)
+				simulated_board.updateBoard(simulated_move)
+				evaluation = self.minimax(simulated_board, maxDepth, current_depth = current_depth-1, alpha=alpha, beta=beta, isBotTurn=False)
 				if evaluation > best:
-					self.bestMove =  move # i know its disgusting i cant think of any oother wayy
+					if current_depth == maxDepth:
+						self.bestMove =  move # i know its disgusting i cant think of any oother wayy
 					best = evaluation
 				alpha = max(alpha, evaluation)
 				if beta <= alpha:
 					break
 		else:
 			best = math.inf
-			legalSpawnPositions = self.getLegalSpawnPositions(board)
-			possibleSpawns = self.getLegalSpawns(legalSpawnPositions)
+			possibleSpawns =self.getLegalSpawns(board)
 			for spawn_position in possibleSpawns:
-				simulated_player = customPlayer()
-				simulated_game_manager = gameManager(simulated_player)
-				simulated_game_manager.loadBoard(board.cells)
-				simulated_game_manager.board.spawnTile(position=spawn_position[0],value=spawn_position[1]) # or maybe redefine simulated manager and player just to be sure there are no side effects
-				evaluation = self.minimax(simulated_game_manager.board, depth-1, alpha, beta, isBotTurn=True)
+				simulated_board = self.simulateTileSpawn(board, spawn_position)
+				evaluation = self.minimax(simulated_board, maxDepth, current_depth=current_depth-1, alpha=alpha, beta=beta, isBotTurn=True)
 				best = min(evaluation, best)
 				beta = min(beta, evaluation)
 				if alpha >= beta:
 					break
 		return best
+
+	def simulatePlayerMove(self): ...
+
+	def simulateTileSpawn(self, board, spawn_position):
+		simulated_board = Board()
+		simulated_board.loadCustomBoard(board.cells)
+		simulated_board.spawnTile(position=spawn_position[0],value=spawn_position[1])
+		return simulated_board
 	
 	def getLegalSpawnPositions(self, board: Board) -> List[int]:
 		legal_positions = []
@@ -84,7 +90,12 @@ class Bot(Player):
 					legal_positions.append([row_num, cell_num])
 		return legal_positions
 
-	def getLegalSpawns(self, legal_positions) -> List[Tuple[List[int], int]]:
+	def getLegalSpawns(self, board: Board):
+		legal_positions = self.getLegalSpawnPositions(board)
+		legal_spawns = self.generateLegalSpawns(legal_positions)
+		return legal_spawns
+
+	def generateLegalSpawns(self, legal_positions) -> List[Tuple[List[int], int]]:
 		spawns = []
 		for position in legal_positions:
 			spawns.append((position, 2))
@@ -92,5 +103,5 @@ class Bot(Player):
 		return spawns
 
 	def makeMove(self, board):
-		self.minimax(board, 4)
+		self.minimax(board, 5)
 		return self.bestMove

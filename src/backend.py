@@ -15,10 +15,10 @@ class gameManager():
 		print("Use WASD to move")
 		self.board.display()
 		while self._status == GameState.IN_PLAY:
-			if self.isLost():
+			if self.board.isLost():
 				self._status = GameState.LOST
 				continue
-			if self.hasWon():
+			if self.board.hasWon():
 				self._status = GameState.WON
 				continue
 			self.move()
@@ -42,35 +42,7 @@ class gameManager():
 			print(e)
 			self.move()
 
-	def getValidMoves(self) -> List[Move]:
-		simulation_board = Board()
-		validMoves = []
-		for move in Move:
-			simulation_board.loadCustomBoard(self.board.cells)
-			try:
-				simulation_board.updateBoard(move)
-				validMoves.append(move)
-			except IllegalMoveError:
-				pass
-			except ValueError:
-				pass
-		return validMoves
-
 	def loadBoard(self, gameState):
 		self.board.loadCustomBoard(gameState)
 			
 
-	def isLost(self):
-		validMoves = self.getValidMoves()
-		if not validMoves:
-			return True
-		return False
-
-	def hasWon(self, targetNumber = None):
-		if targetNumber is None:
-			targetNumber = 2048
-		for row in self.board.cells:
-			for cell in row:
-				if cell == targetNumber:
-					return True
-		return False

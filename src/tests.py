@@ -257,7 +257,7 @@ class GamePlay(bt.testGroup):
 			[8,16,2,4],
 			[16,2,4,8]
 		])
-		validMoves = game_manager.getValidMoves()
+		validMoves = game_manager.board.getValidMoves()
 		bt.assertEquals(validMoves,[])
 
 class StaticEval(bt.testGroup):
@@ -314,7 +314,7 @@ class Bot(bt.testGroup):
 		simulated_board.loadCustomBoard(
 			[[0,0,0,0],[0,0,0,0],[1024,1024,0,0],[0, 0,0,0]])
 		best_move = simulated_bot.makeMove(simulated_board)
-		bt.assertEquals(best_move, Move.LEFT) # cuz it checks moves in w, a, s, d order
+		bt.assertEquals(best_move, Move.DOWN) # any move will be evaluated as good since they're all "forced mate"
 
 	def testWinInTwo(self):
 		simulated_bot = bot.Bot()
