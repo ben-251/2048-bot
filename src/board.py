@@ -60,16 +60,6 @@ class Board():
 	def loadCustomBoard(self, gameState:List[List[int]]):
 		self.cells = copy.deepcopy(gameState)
 
-	def display(self):
-		print("\n")
-		for row in self.cells:
-			for cell in row:
-				if cell == 0:
-					symbol = "○"
-				else:
-					symbol = cell
-				print(f" {symbol} ",end = "")
-			print("")
 	
 	def updateBoard(self,move:Move):
 		if move is move.HORIZONTAL or move is move.VERTICAL:
@@ -215,3 +205,15 @@ class Board():
 			except ValueError:
 				pass
 		return validMoves
+
+	def display(self):
+		print("\n")
+		for row in self.cells:
+			for cell in row:
+				paddingSize = 4-len(str(cell))
+				if cell == 0:
+					symbol = "○"
+				else:
+					symbol = cell
+				print(f"{' '*paddingSize}{symbol}{''*paddingSize} ",end = "")
+			print("")

@@ -1,5 +1,7 @@
 import math
 from typing import Optional, List, Tuple
+
+from numpy import block
 from backend import gameManager
 from board import Board, IllegalMoveError
 from player import Player
@@ -8,10 +10,10 @@ from utils import Move
 
 class Bot(Player):
 	WEIGHT_MAP = [
-		[-16.0, -16.8, -16.0, -16.0],
+		[-16.0, -16.0, -16.0, -16.0],
 		[-5.4, -5.6, -5.8, -6.0], 
 		[+1.0, +1.0, +2.0, +3.0], 
-		[+30.0, +7.0, +6.0, +5.0]
+		[+50.0, +7.0, +6.0, +5.0]
 	]
 
 	def __init__(self):
@@ -19,13 +21,43 @@ class Bot(Player):
 		self.bestMove = Move.NONE #TODO: remove this montrosity
 	
 	def computeStaticEval(self, game_state: Board) -> float:
+		evaluation = self.calculateWeightedEval(game_state)
+		corner_penalty = self.getCornerPenalty(game_state)
+		evaluation -= corner_penalty
+		return evaluation
+
+	def calculateWeightedEval(self, game_state):
 		current_eval = 0
 		for weight_row, board_row in zip(self.WEIGHT_MAP, game_state.cells):
 			for weight, cell in zip(weight_row, board_row):
 				current_eval += weight * cell
 		return current_eval
 
-	def minimax(self, board: Board, maxDepth: int, current_depth: Optional[int]=None, alpha: Optional[float]=None, beta: Optional[float] = None, isBotTurn: Optional[float]=None) -> float:
+	def getCornerPenalty(self, game_state):
+		CORNER_WEIGHT = 15
+		maxBlocks = self.getMaxBlocks(game_state)
+		corner_penalty = min(map(self.getDistanceFromCorner, maxBlocks))
+		return corner_penalty*CORNER_WEIGHT
+
+	def getMaxBlocks(self, board: Board) -> List[List[int]]:
+		max_block_value = 0
+		max_blocks = []
+		for row_number, row in enumerate(board.cells):
+			for cell_number, cell in enumerate(row):
+				current_position = [row_number, cell_number]
+				if cell == max_block_value:
+					max_blocks.append(current_position)
+				elif cell > max_block_value:
+					max_blocks = [current_position]
+		return max_blocks
+				
+	def getDistanceFromCorner(self, block_position) -> float:
+		delta_height = 3 -  block_position[0]
+		delta_length = block_position[1] # - 0
+		distance = (delta_height**2 + delta_length**2)**0.5
+		return distance
+
+	def minimax(self, board: Board, maxDepth: int, current_depth: Optional[int]=None, alpha: Optional[float]=None, beta: Optional[float] = None, isBotTurn: Optional[bool]=None, bestMove: Optional[Move]=None) -> Tuple[Move, float]:
 		simulated_board = Board()
 		simulated_board.loadCustomBoard(board.cells)
 		if alpha is None:
@@ -36,28 +68,27 @@ class Bot(Player):
 			isBotTurn = True
 		if current_depth is None:
 			current_depth = maxDepth
+		if bestMove is None:
+			bestMove = Move.NONE
 
 		if current_depth == 0:
-			return self.computeStaticEval(simulated_board)
+			return Move.NONE, self.computeStaticEval(simulated_board)
 		if simulated_board.isLost():
-			return -math.inf
+			return Move.NONE, -math.inf
 		elif simulated_board.hasWon():
-			return math.inf
+			return Move.NONE, math.inf
 
 		if isBotTurn:
 			best = -math.inf
 			legalMoves = simulated_board.getValidMoves()
 			for move in legalMoves:		
-				simulated_player = customPlayer()
-				letter_for_move = simulated_player.convertToLetter(move)
 				simulated_board = Board()
 				simulated_board.loadCustomBoard(board.cells)
-				simulated_move = simulated_player.makeMove(letter_for_move)
-				simulated_board.updateBoard(simulated_move)
-				evaluation = self.minimax(simulated_board, maxDepth, current_depth = current_depth-1, alpha=alpha, beta=beta, isBotTurn=False)
+				simulated_board.updateBoard(move)
+				computer_best_move, evaluation = self.minimax(simulated_board, maxDepth, current_depth = current_depth-1, alpha=alpha, beta=beta, isBotTurn=False, bestMove = None)
 				if evaluation > best:
 					if current_depth == maxDepth:
-						self.bestMove =  move # i know its disgusting i cant think of any oother wayy
+						bestMove =  move # i know its disgusting i cant think of any oother wayy
 					best = evaluation
 				alpha = max(alpha, evaluation)
 				if beta <= alpha:
@@ -67,16 +98,16 @@ class Bot(Player):
 			possibleSpawns =self.getLegalSpawns(board)
 			for spawn_position in possibleSpawns:
 				simulated_board = self.simulateTileSpawn(board, spawn_position)
-				evaluation = self.minimax(simulated_board, maxDepth, current_depth=current_depth-1, alpha=alpha, beta=beta, isBotTurn=True)
+				human_best_move, evaluation = self.minimax(simulated_board, maxDepth, current_depth=current_depth-1, alpha=alpha, beta=beta, isBotTurn=True)
 				best = min(evaluation, best)
 				beta = min(beta, evaluation)
 				if alpha >= beta:
 					break
-		return best
+		return bestMove, best
 
 	def simulatePlayerMove(self): ...
 
-	def simulateTileSpawn(self, board, spawn_position):
+	def simulateTileSpawn(self, board: Board, spawn_position: Tuple):
 		simulated_board = Board()
 		simulated_board.loadCustomBoard(board.cells)
 		simulated_board.spawnTile(position=spawn_position[0],value=spawn_position[1])
@@ -103,5 +134,5 @@ class Bot(Player):
 		return spawns
 
 	def makeMove(self, board):
-		self.minimax(board, 5)
-		return self.bestMove
+		bestMove, evaluation = self.minimax(board, 4)
+		return bestMove

@@ -263,8 +263,8 @@ class GamePlay(bt.testGroup):
 class StaticEval(bt.testGroup):
 	def __init__(self):
 		super().__init__()
-	
-	def testBottomRowOnly(self):
+
+	def testMaxBlock(self):
 		simulated_bot = bot.Bot()
 		new_board = board.Board()
 		new_board.loadCustomBoard(
@@ -272,19 +272,48 @@ class StaticEval(bt.testGroup):
 				[0,0,0,0], [0,0,0,0], [0,0,0,0], [128, 64, 4, 2]
 			]
 		)
-		evaluation = simulated_bot.computeStaticEval(new_board)
-		bt.assertEquals(evaluation,182.4)
+		max_block = simulated_bot.getMaxBlocks(new_board)[0]
+		bt.assertEquals(max_block,[3,0])
 
-	def testBadRowsOnly(self):
+	def testMaxBlocks(self):
 		simulated_bot = bot.Bot()
 		new_board = board.Board()
 		new_board.loadCustomBoard(
 			[
-				[2,8,2,4], [2,8,2,4], [2,8,2,4], [0, 0, 0, 0]
+				[0,0,0,0], [0,64,0,0], [0,0,0,0], [2, 64, 4, 2]
 			]
 		)
-		evaluation = simulated_bot.computeStaticEval(new_board)
-		bt.assertAlmostEquals(evaluation,-162.8)
+		max_blocks = simulated_bot.getMaxBlocks(new_board)
+		bt.assertEquals(max_blocks,[[1,1],[3,0]])
+
+	def testVerticalDistanceFromCorner(self):
+		simulated_bot = bot.Bot()
+		verticalDistance = simulated_bot.getDistanceFromCorner([0,0])
+		bt.assertEquals(verticalDistance,3)	
+
+	def testHorizontalDistanceFromCorner(self):
+		simulated_bot = bot.Bot()
+		horizontalDistance = simulated_bot.getDistanceFromCorner([0,2])
+		bt.assertEquals(horizontalDistance,2)	
+
+	def testDiagonalDistance(self):
+		simulated_bot = bot.Bot()
+		distance = simulated_bot.getDistanceFromCorner([2,3])
+		bt.assertAlmostEquals(distance,3.605551275)						
+
+	def testFullCornerPenalty(self):
+		simulated_bot = bot.Bot()
+		new_board = board.Board()
+		new_board.loadCustomBoard(
+			[
+				[0,0,0,0],
+				[0,64,0,0],
+				[0,64,0,0],
+				[2, 2, 4, 2]
+			]
+		)
+		corner_penalty = simulated_bot.getCornerPenalty(new_board)
+		bt.assertAlmostEquals(corner_penalty,1.4142135)
 
 class Bot(bt.testGroup):
 	def __init__(self):
@@ -304,7 +333,7 @@ class Bot(bt.testGroup):
 		best_move = simulated_bot.makeMove(simulated_board)
 		
 		bt.assertEquals(
-			best_move, Move.UP # cuz it checks moves in w, a, s, d order
+			best_move, Move.DOWN
 		)
 
 	def testWinningHorizontalMove(self):
@@ -330,7 +359,7 @@ class Bot(bt.testGroup):
 		best_move = simulated_bot.makeMove(simulated_board)
 		
 		bt.assertEquals(
-			best_move, Move.DOWN # cuz it checks moves in w, a, s, d order
+			best_move, Move.DOWN
 		)
 	def testObviousBestMove(self):
 		simulated_bot = bot.Bot()
@@ -346,15 +375,50 @@ class Bot(bt.testGroup):
 		best_move = simulated_bot.makeMove(simulated_board)
 		
 		bt.assertEquals(
-			best_move, Move.DOWN # cuz it checks moves in w, a, s, d order
+			best_move, Move.DOWN
 		)
 	
+	def testComplexPosition(self):
+		simulated_bot = bot.Bot()
+		simulated_board = board.Board()
+
+		simulated_board.loadCustomBoard(
+			[[4,2,4,2],
+			[16,4,2,4],
+			[0,2,32,2],
+			[64,32,2,4]
+			]
+		)
+		best_move = simulated_bot.makeMove(simulated_board)
+		
+		bt.assertEquals(
+			best_move, Move.LEFT
+		)		
+
+	def testMoreComplexPosition(self):
+		simulated_bot = bot.Bot()
+		simulated_board = board.Board()
+
+		simulated_board.loadCustomBoard( #TODO: come up with a nice puzzle
+			[[4,2,4,2],
+			[16,4,2,4],
+			[0,2,32,2],
+			[64,32,2,4]
+			]
+		)
+		best_move = simulated_bot.makeMove(simulated_board)
+		
+		bt.assertEquals(
+			best_move, Move.LEFT
+		)		
+
+
 bt.test_all(
 	BoardTests,
+	StaticEval,
 	Bot,
 	HorizontalMoves,
 	VerticalMoves,
 	GamePlay,
-	StaticEval,
 	stats_amount="low"
 )
