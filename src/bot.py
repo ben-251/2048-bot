@@ -73,11 +73,11 @@ class Bot(Player):
 			bestMove = Move.NONE
 
 		if current_depth == 0:
-			return Move.NONE, self.computeStaticEval(simulated_board)
+			return bestMove, self.computeStaticEval(simulated_board)
 		if simulated_board.isLost():
-			return Move.NONE, -math.inf
+			return bestMove, -math.inf
 		elif simulated_board.hasWon():
-			return Move.NONE, math.inf
+			return bestMove, math.inf
 
 		if isBotTurn:
 			best = -math.inf
