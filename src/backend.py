@@ -15,13 +15,17 @@ class gameManager():
 		print("Use WASD to move")
 		self.board.display()
 		while self._status == GameState.IN_PLAY:
-			if self.board.isLost():
-				self._status = GameState.LOST
-				continue
+			# if self.board.isLost():
+			# 	self._status = GameState.LOST
+			# 	continue
 			if self.board.hasWon():
 				self._status = GameState.WON
 				continue
-			self.move()
+			try:
+				self.move()
+			except BoardFullError as e:
+				print(e)
+				self._status = GameState.LOST
 			self.board.display()
 		self.display_results()
 

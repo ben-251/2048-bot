@@ -62,9 +62,6 @@ class Board():
 
 	
 	def updateBoard(self,move:Move):
-		if move is move.HORIZONTAL or move is move.VERTICAL:
-			raise ValueError
-
 		if move in move.HORIZONTAL:
 			self.slideTilesHorizontally(move)
 		elif move in move.VERTICAL:
@@ -198,6 +195,8 @@ class Board():
 		simulation_board = Board()
 		validMoves = []
 		for move in Move:
+			if move in [Move.HORIZONTAL, Move.VERTICAL, Move.NONE]:
+				continue
 			simulation_board.loadCustomBoard(self.cells)
 			try:
 				simulation_board.updateBoard(move)
