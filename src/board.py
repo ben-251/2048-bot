@@ -69,6 +69,8 @@ class Board():
 			self.slideTilesHorizontally(move)
 		elif move in move.VERTICAL:
 			self.slideTilesVertically(move)
+		elif move is move.NONE:
+			raise BoardFullError("Game over")
 		else:
 			raise ValueError("invalid move type")
 
@@ -201,6 +203,8 @@ class Board():
 				simulation_board.updateBoard(move)
 				validMoves.append(move)
 			except IllegalMoveError:
+				pass
+			except BoardFullError:
 				pass
 			except ValueError:
 				pass

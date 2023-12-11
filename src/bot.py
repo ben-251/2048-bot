@@ -48,6 +48,7 @@ class Bot(Player):
 				if cell == max_block_value:
 					max_blocks.append(current_position)
 				elif cell > max_block_value:
+					max_block_value = cell
 					max_blocks = [current_position]
 		return max_blocks
 				

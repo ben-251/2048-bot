@@ -16,4 +16,7 @@ I just realised it does that whenever it's about to lose. I don't know what's ha
  128  2  64  32 
  4  16  128  2 
 
-after reaching that position it "gives up"
+after reaching that position it "gives up" and starts spamming an illegal move
+
+# 11 Dec
+Added a check to see how far away the big piece is from the corner to get it to stop moving up and stuff. kinda worked. still sometimes makes stupid decisions and is then forced to spend ages trying to fix its mess, and it some times gets 2s and stuff stuck in bottom row, but it is doing slightly better

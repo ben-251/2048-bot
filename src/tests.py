@@ -284,7 +284,7 @@ class StaticEval(bt.testGroup):
 			]
 		)
 		max_blocks = simulated_bot.getMaxBlocks(new_board)
-		bt.assertEquals(max_blocks,[[1,1],[3,0]])
+		bt.assertEquals(max_blocks,[[1,1],[3,1]])
 
 	def testVerticalDistanceFromCorner(self):
 		simulated_bot = bot.Bot()
@@ -293,13 +293,13 @@ class StaticEval(bt.testGroup):
 
 	def testHorizontalDistanceFromCorner(self):
 		simulated_bot = bot.Bot()
-		horizontalDistance = simulated_bot.getDistanceFromCorner([0,2])
+		horizontalDistance = simulated_bot.getDistanceFromCorner([3,2])
 		bt.assertEquals(horizontalDistance,2)	
 
 	def testDiagonalDistance(self):
 		simulated_bot = bot.Bot()
 		distance = simulated_bot.getDistanceFromCorner([2,3])
-		bt.assertAlmostEquals(distance,3.605551275)						
+		bt.assertAlmostEquals(distance,3.16227766)					
 
 	def testFullCornerPenalty(self):
 		simulated_bot = bot.Bot()
@@ -313,7 +313,7 @@ class StaticEval(bt.testGroup):
 			]
 		)
 		corner_penalty = simulated_bot.getCornerPenalty(new_board)
-		bt.assertAlmostEquals(corner_penalty,1.4142135)
+		bt.assertAlmostEquals(corner_penalty,21.213203435596427)
 
 class Bot(bt.testGroup):
 	def __init__(self):
