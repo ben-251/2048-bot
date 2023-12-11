@@ -94,6 +94,7 @@ class Bot(Player):
 				alpha = max(alpha, evaluation)
 				if beta <= alpha:
 					break
+			# return bestmove, best eval
 		else:
 			best = math.inf
 			possibleSpawns =self.getLegalSpawns(board)
@@ -104,6 +105,9 @@ class Bot(Player):
 				beta = min(beta, evaluation)
 				if alpha >= beta:
 					break
+			# return bestmove, best eval
+
+		        
 		return bestMove, best
 
 	def simulatePlayerMove(self): ...
