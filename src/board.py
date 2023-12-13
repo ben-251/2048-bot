@@ -192,20 +192,18 @@ class Board():
 		return False
 
 	def getValidMoves(self) -> List[Move]:
-		simulation_board = Board()
 		validMoves = []
 		for move in Move:
+			simulation_board = Board()
+			simulation_board.loadCustomBoard(self.cells)
 			if move in [Move.HORIZONTAL, Move.VERTICAL, Move.NONE]:
 				continue
-			simulation_board.loadCustomBoard(self.cells)
 			try:
 				simulation_board.updateBoard(move)
 				validMoves.append(move)
 			except IllegalMoveError:
 				pass
 			except BoardFullError:
-				pass
-			except ValueError:
 				pass
 		return validMoves
 

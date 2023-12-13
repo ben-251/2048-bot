@@ -15,9 +15,6 @@ class gameManager():
 		print("Use WASD to move")
 		self.board.display()
 		while self._status == GameState.IN_PLAY:
-			# if self.board.isLost():
-			# 	self._status = GameState.LOST
-			# 	continue
 			if self.board.hasWon():
 				self._status = GameState.WON
 				continue
@@ -44,7 +41,7 @@ class gameManager():
 			self.board.spawnTile()
 		except IllegalMoveError as e:
 			print(e)
-			self.move()
+			self.move() # need to make that only call for humans
 
 	def loadBoard(self, gameState):
 		self.board.loadCustomBoard(gameState)

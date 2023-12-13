@@ -56,8 +56,12 @@ class Bot(Player):
 		return distance
 
 	def minimax(self, board: Board, maxDepth: int, current_depth: Optional[int]=None, alpha: Optional[float]=None, beta: Optional[float] = None, isBotTurn: Optional[bool]=None, bestMove: Optional[Move|Tuple[List[int], int]]=None) -> Tuple[Move|Tuple[List[int], int], float]:
-		simulated_board = Board()
-		simulated_board.loadCustomBoard(board.cells)
+		'''
+		Returns the move and evaluation that yield the best or worst position.
+
+		maxDepth: the number of steps to look at. 
+		if set to 1, then it looks at the opposite player for one level only to determine. A total of 1 recursive call.
+		'''
 		if alpha is None:
 			alpha = -math.inf
 		if beta is None:
@@ -70,41 +74,52 @@ class Bot(Player):
 			bestMove = Move.NONE
 
 		if current_depth == 0:
-			return bestMove, self.computeStaticEval(simulated_board)
-		if simulated_board.isLost():
+			return bestMove, self.computeStaticEval(board) # should it be Move.NONE
+		if board.isLost():
 			return bestMove, -math.inf
-		elif simulated_board.hasWon():
+		elif board.hasWon():
 			return bestMove, math.inf
 
 		if isBotTurn:
-			best_evaluation = -math.inf
-			legalMoves = simulated_board.getValidMoves()
-			for move in legalMoves:		
-				simulated_board = self.simulatePlayerMove(board,move)
-				human_best_move, evaluation = self.minimax(simulated_board, maxDepth, current_depth = current_depth-1, alpha=alpha, beta=beta, isBotTurn=False, bestMove = None)
-				if evaluation > best_evaluation:
-					if current_depth == maxDepth:
-						bestMove =  move
-					best_evaluation = evaluation
-				alpha = max(alpha, evaluation)
-				if beta <= alpha:
-					break
+			bestMove, best_evaluation, alpha = self.playerMinimax(board, maxDepth, current_depth, alpha, beta)
 			return bestMove, best_evaluation
 		else:
-			best_evaluation = math.inf
-			best_spawn = [0],0
-			possibleSpawns =self.getLegalSpawns(board)
-			for spawn_position in possibleSpawns:
-				simulated_board = self.simulateTileSpawn(board, spawn_position)
-				computer_best_move, evaluation = self.minimax(simulated_board, maxDepth, current_depth=current_depth-1, alpha=alpha, beta=beta, isBotTurn=True)
-				if evaluation < best_evaluation:
-					if current_depth == maxDepth:
-						best_spawn =  spawn_position
-					best_evaluation = evaluation
-				beta = min(beta, evaluation)
-				if alpha >= beta:
-					break
-			return best_spawn, best_evaluation 
+			lowest_eval_spawn, lowest_evaluation, beta = self.computerMinimax(board, maxDepth, current_depth, alpha, beta)
+			return lowest_eval_spawn, lowest_evaluation
+
+	def playerMinimax(self, board, depth, current_depth, alpha, beta):
+		simulated_board = Board()
+		simulated_board.loadCustomBoard(board.cells)		
+		bestMove = Move.NONE
+		best_evaluation = -math.inf
+		legalMoves = simulated_board.getValidMoves()
+		for move in legalMoves:		
+			simulated_board = self.simulatePlayerMove(simulated_board,move)
+			computer_min_eval_move, computer_min_eval = self.minimax(simulated_board, depth, current_depth = current_depth-1, alpha=alpha, beta=beta, isBotTurn=False, bestMove = None)
+			if computer_min_eval > best_evaluation:
+				bestMove =  move
+				best_evaluation = computer_min_eval
+			alpha = max(alpha, computer_min_eval)
+			if beta <= alpha:
+				break
+		return bestMove, best_evaluation, alpha
+
+	def computerMinimax(self, board, depth, current_depth, alpha, beta):
+		simulated_board = Board()
+		simulated_board.loadCustomBoard(board.cells)
+		lowest_evaluation = math.inf
+		lowest_eval_spawn = [0],0
+		possibleSpawns = self.getLegalSpawns(simulated_board)
+		for spawn_position in possibleSpawns:
+			simulated_board = self.simulateTileSpawn(simulated_board, spawn_position)
+			human_max_eval_move, human_max_eval = self.minimax(simulated_board, depth, current_depth=current_depth-1, alpha=alpha, beta=beta, isBotTurn=True)
+			if human_max_eval < lowest_evaluation:
+				lowest_eval_spawn =  spawn_position
+				lowest_evaluation = human_max_eval
+			beta = min(beta, human_max_eval)
+			if alpha >= beta:
+				break
+		return lowest_eval_spawn, lowest_evaluation, beta
 
 	def simulatePlayerMove(self,board,move):
 		simulated_board = Board()
@@ -139,7 +154,7 @@ class Bot(Player):
 		return spawns
 
 	def makeMove(self, board):
-		bestMove, evaluation = self.minimax(board, 4)
+		bestMove, evaluation = self.minimax(board, 1)
 		self.commentOnEvaluation(evaluation)
 		return bestMove
 	

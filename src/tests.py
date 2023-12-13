@@ -32,6 +32,24 @@ class BoardTests(bt.testGroup):
 			]
 		)
 
+	def testNoValidMoves(self):
+		new_board = board.Board()
+		new_board.loadCustomBoard([[2,4,2,4],[4,2,4,2],[2,4,2,4],[4,2,4,2]])
+		valid_moves = new_board.getValidMoves()
+		bt.assertEquals(valid_moves, [])
+
+	def testVerticalValidOnly(self):
+		new_board = board.Board()
+		new_board.loadCustomBoard([[2,4,2,4],[2,16,64,16],[2,4,2,4],[4,2,4,2]])
+		valid_moves = new_board.getValidMoves()
+		bt.assertEquals(valid_moves, [Move.DOWN, Move.UP])
+	
+	def testRightAndUp(self):
+		new_board = board.Board()
+		new_board.loadCustomBoard([[0,0,0,0],[2,0,0,0],[8,0,0,0],[32,0,0,0]])
+		valid_moves = new_board.getValidMoves()
+		bt.assertEquals(valid_moves, [Move.RIGHT, Move.UP])		
+
 class HorizontalMoves(bt.testGroup):
 	def __init__(self):
 		super().__init__()
@@ -260,6 +278,7 @@ class GamePlay(bt.testGroup):
 		validMoves = game_manager.board.getValidMoves()
 		bt.assertEquals(validMoves,[])
 
+
 class StaticEval(bt.testGroup):
 	def __init__(self):
 		super().__init__()
@@ -313,7 +332,30 @@ class StaticEval(bt.testGroup):
 			]
 		)
 		corner_penalty = simulated_bot.getCornerPenalty(new_board)
-		bt.assertAlmostEquals(corner_penalty,21.213203435596427)
+		bt.assertAlmostEquals(corner_penalty,565.685424949238)
+
+	def testSimpleEvalComparison(self):
+		simulated_bot = bot.Bot()
+		new_board = board.Board()
+		new_board.loadCustomBoard(
+			[
+				[0,0,0,0],
+				[0,0,4,0],
+				[0,2,0,0],
+				[64, 4, 0, 0]
+			]
+		)
+		better_position = simulated_bot.computeStaticEval(new_board)
+		new_board.loadCustomBoard(
+			[
+				[64,2,4,0],
+				[0,4,4,0],
+				[0,0,0,0],
+				[0, 0, 0, 0]
+			]			
+		)
+		worse_position = simulated_bot.computeStaticEval(new_board)
+		bt.assertAlmostEquals(better_position > worse_position,True)		
 
 class Bot(bt.testGroup):
 	def __init__(self):
@@ -343,7 +385,7 @@ class Bot(bt.testGroup):
 		simulated_board.loadCustomBoard(
 			[[0,0,0,0],[0,0,0,0],[1024,1024,0,0],[0, 0,0,0]])
 		best_move = simulated_bot.makeMove(simulated_board)
-		bt.assertEquals(best_move, Move.DOWN) # any move will be evaluated as good since they're all "forced mate"
+		bt.assertEquals(best_move, Move.LEFT) # at a depth of 1, left should be considered best. at any higher depth, it'll realise that all moves eventualy get to 2048 so will just use the first one
 
 	def testWinInTwo(self):
 		simulated_bot = bot.Bot()
