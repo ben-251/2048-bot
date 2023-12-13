@@ -1,7 +1,5 @@
 import math
 from typing import Optional, List, Tuple
-
-from numpy import block
 from backend import gameManager
 from board import Board, IllegalMoveError
 from player import Player
@@ -82,13 +80,11 @@ class Bot(Player):
 			best_evaluation = -math.inf
 			legalMoves = simulated_board.getValidMoves()
 			for move in legalMoves:		
-				simulated_board = Board()
-				simulated_board.loadCustomBoard(board.cells)
-				simulated_board.updateBoard(move)
+				simulated_board = self.simulatePlayerMove(board,move)
 				human_best_move, evaluation = self.minimax(simulated_board, maxDepth, current_depth = current_depth-1, alpha=alpha, beta=beta, isBotTurn=False, bestMove = None)
 				if evaluation > best_evaluation:
 					if current_depth == maxDepth:
-						bestMove =  move # i know its disgusting i cant think of any oother wayy
+						bestMove =  move
 					best_evaluation = evaluation
 				alpha = max(alpha, evaluation)
 				if beta <= alpha:
@@ -108,10 +104,14 @@ class Bot(Player):
 				beta = min(beta, evaluation)
 				if alpha >= beta:
 					break
-			return best_spawn, best_evaluation # "bestMove" is virtually a place holder here.
+			return best_spawn, best_evaluation 
 
-	def simulatePlayerMove(self): ...
-
+	def simulatePlayerMove(self,board,move):
+		simulated_board = Board()
+		simulated_board.loadCustomBoard(board.cells)
+		simulated_board.updateBoard(move)
+		return simulated_board
+		
 	def simulateTileSpawn(self, board: Board, spawn_position: Tuple):
 		simulated_board = Board()
 		simulated_board.loadCustomBoard(board.cells)
@@ -139,7 +139,7 @@ class Bot(Player):
 		return spawns
 
 	def makeMove(self, board):
-		bestMove, evaluation = self.minimax(board, 8)
+		bestMove, evaluation = self.minimax(board, 4)
 		self.commentOnEvaluation(evaluation)
 		return bestMove
 	

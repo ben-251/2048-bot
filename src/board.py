@@ -1,6 +1,6 @@
 import copy
 import random
-from bentests import colorama
+import colorama
 from utils import GameState, Move
 from typing import List, Optional
 
