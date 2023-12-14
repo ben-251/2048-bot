@@ -50,8 +50,8 @@ class Bot(Player):
 		return max_blocks
 				
 	def getDistanceFromCorner(self, block_position) -> float:
-		delta_height = 3 -  block_position[0]
-		delta_length = block_position[1] # - 0
+		delta_height = 3 - block_position[0]
+		delta_length = block_position[1]
 		distance = (delta_height**2 + delta_length**2)**0.5
 		return distance
 
@@ -133,16 +133,9 @@ class Bot(Player):
 		simulated_board.spawnTile(position=spawn_position[0],value=spawn_position[1])
 		return simulated_board
 	
-	def getLegalSpawnPositions(self, board: Board) -> List[int]:
-		legal_positions = []
-		for row_num, row in enumerate(board.cells):
-			for cell_num, cell in enumerate(row):
-				if cell == 0:
-					legal_positions.append([row_num, cell_num])
-		return legal_positions
 
 	def getLegalSpawns(self, board: Board):
-		legal_positions = self.getLegalSpawnPositions(board)
+		legal_positions = board.getLegalSpawnPositions(board)
 		legal_spawns = self.generateLegalSpawns(legal_positions)
 		return legal_spawns
 

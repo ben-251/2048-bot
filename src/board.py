@@ -4,7 +4,6 @@ import colorama
 from utils import GameState, Move
 from typing import List, Optional
 
-class BoardFullError(Exception): ...
 class IllegalMoveError(Exception): ...
 class NotMoved(Exception): ...
 
@@ -19,14 +18,8 @@ class Board():
 		self.spawnTiles(2)
 		
 	def initCells(self):
-		self.cells = []
-		ROW_COUNT = 4
-		COLUMN_COUNT = 4
-		for y in range(ROW_COUNT):
-			row = []
-			for x in range(COLUMN_COUNT):
-				row.append(0)
-			self.cells.append(row)
+		ROW_COUNT, COLUMN_COUNT = 4, 4
+		self.cells = [[0 for i in range(COLUMN_COUNT)] for j in range(ROW_COUNT)]
 		
 	def spawnTiles(self, tileCount:Optional[int]=None):
 		'''
@@ -49,25 +42,30 @@ class Board():
 
 		random_row_num = random.randint(0,3)
 		random_col_num = random.randint(0,3)
-		if not any([cell != 0 for cell in [row for row in self.cells]]):
-			raise BoardFullError("")
 		while self.cells[random_row_num][random_col_num] != 0:
 			random_row_num = random.randint(0,3)
 			random_col_num = random.randint(0,3)
 		random_cell_value = random.choice([2,4])
 		self.cells[random_row_num][random_col_num] = random_cell_value
 
+	def getLegalSpawnPositions(self) -> List[int]:
+		all_positions = []
+		for x in range(4):
+			all_positions.append([x,y] for y in range(4))
+		legal_positions = list(filter(self.isCellEmpty, all_positions))
+		return legal_positions
+
+	def isCellEmpty(self, cell_position):
+		return self.cells[cell_position[0]][cell_position[1]]
+
 	def loadCustomBoard(self, gameState:List[List[int]]):
 		self.cells = copy.deepcopy(gameState)
 
-	
 	def updateBoard(self,move:Move):
 		if move in move.HORIZONTAL:
 			self.slideTilesHorizontally(move)
 		elif move in move.VERTICAL:
 			self.slideTilesVertically(move)
-		elif move is move.NONE:
-			raise BoardFullError("Game over")
 		else:
 			raise ValueError("invalid move type")
 
@@ -130,7 +128,6 @@ class Board():
 		if not any(haveTilesMoved):
 			raise IllegalMoveError("no tiles can move that way")
 
-			
 	def slideSingleTileVertically(self, column: int, current_row: int, direction: int):
 		hasMoved = False
 		hasMerged = False
@@ -138,6 +135,7 @@ class Board():
 			current_tile = self.cells[current_row][column]
 			if current_row + direction == -1 or current_row + direction == 4:
 				break
+
 			next_tile = self.cells[current_row+direction][column]
 			if next_tile == 0:
 				self.swapVertically(current_row, column, direction)
@@ -178,18 +176,12 @@ class Board():
 
 	def isLost(self):
 		validMoves = self.getValidMoves()
-		if not validMoves:
-			return True
-		return False
+		return not validMoves
 
 	def hasWon(self, targetNumber = None):
 		if targetNumber is None:
 			targetNumber = 2048
-		for row in self.cells:
-			for cell in row:
-				if cell == targetNumber:
-					return True
-		return False
+		return any(((targetNumber in row) for row in self.cells))
 
 	def getValidMoves(self) -> List[Move]:
 		validMoves = []
@@ -203,8 +195,7 @@ class Board():
 				validMoves.append(move)
 			except IllegalMoveError:
 				pass
-			except BoardFullError:
-				pass
+
 		return validMoves
 
 	def display(self):
@@ -212,9 +203,6 @@ class Board():
 		for row in self.cells:
 			for cell in row:
 				paddingSize = 4-len(str(cell))
-				if cell == 0:
-					symbol = "○"
-				else:
-					symbol = cell
+				symbol = "○" if cell == 0 else cell
 				print(f"{' '*paddingSize}{symbol}{''*paddingSize} ",end = "")
 			print("")

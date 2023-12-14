@@ -1,4 +1,4 @@
-from board import Board, BoardFullError, IllegalMoveError
+from board import Board, IllegalMoveError
 from utils import GameState, Move
 from customPlayer import customPlayer
 from typing import List
@@ -18,11 +18,10 @@ class gameManager():
 			if self.board.hasWon():
 				self._status = GameState.WON
 				continue
-			try:
-				self.move()
-			except BoardFullError as e:
-				print(e)
+			if self.board.isLost():
 				self._status = GameState.LOST
+				continue
+			self.move()
 			self.board.display()
 		self.display_results()
 

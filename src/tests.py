@@ -154,16 +154,15 @@ class VerticalMoves(bt.testGroup):
 		super().__init__()
 
 	def testMerge(self):
-		player = customPlayer.customPlayer()
-		game_manager = backend.gameManager(player)
-		game_manager.loadBoard(
+		custom_board = board.Board()
+		custom_board.loadCustomBoard(
 			[
 				[0,0,2,0],[0,0,2,0],[0,0,0,0], [0,0,0,0]
 			]
 		)
-		game_manager.board.mergeTilesVertically(1,2,-1)
+		custom_board.mergeTilesVertically(1,2,-1)
 		bt.assertEquals(
-			game_manager.board.cells,
+			custom_board.cells,
 			[
 				[0,0,4,0],[0,0,0,0],[0,0,0,0], [0,0,0,0]
 			]			
@@ -267,17 +266,60 @@ class GamePlay(bt.testGroup):
 		super().__init__()
 	
 	def testGameOver(self):
-		player = customPlayer.customPlayer()
-		game_manager = backend.gameManager(player)
-		game_manager.loadBoard([
+		new_board = board.Board()
+		new_board.loadCustomBoard([
 			[2,4,8,16],
 			[4,8,16,2],
 			[8,16,2,4],
 			[16,2,4,8]
 		])
-		validMoves = game_manager.board.getValidMoves()
+		validMoves = new_board.getValidMoves()
 		bt.assertEquals(validMoves,[])
 
+	def testHasLost(self):
+		new_board = board.Board()
+		new_board.loadCustomBoard([
+			[2,4,8,16],
+			[4,8,16,2],
+			[8,16,2,4],
+			[16,2,4,8]
+		])
+		isLost = new_board.isLost()
+		bt.assertEquals(isLost,True)
+
+	
+	def testHasWon(self):
+		new_board = board.Board()
+		new_board.loadCustomBoard([
+			[2,4,8,16],
+			[4,8,2048,2],
+			[8,16,2,4],
+			[2,2,4,8]
+		])
+		hasWon = new_board.hasWon()
+		bt.assertEquals(hasWon,True)
+	
+	def testHasNotWon(self):
+		new_board = board.Board()
+		new_board.loadCustomBoard([
+			[2,4,8,16],
+			[4,8,2,2],
+			[8,16,2,4],
+			[2,2,4,8]
+		])
+		hasWon = new_board.hasWon()
+		bt.assertEquals(hasWon,False)
+
+	def testHasNotLost(self):
+		new_board = board.Board()
+		new_board.loadCustomBoard([
+			[2,4,8,16],
+			[4,8,2,2],
+			[8,16,2,4],
+			[2,2,4,8]
+		])
+		hasLost = new_board.isLost()
+		bt.assertEquals(hasLost,False)
 
 class StaticEval(bt.testGroup):
 	def __init__(self):
@@ -462,5 +504,4 @@ bt.test_all(
 	HorizontalMoves,
 	VerticalMoves,
 	GamePlay,
-	stats_amount="low"
 )
